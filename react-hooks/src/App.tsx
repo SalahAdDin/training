@@ -65,7 +65,7 @@ export default function App() {
     getByName(search).then(setPokemons);
   }, []);
 
-  const pokemonsWithPower: Pokemon[] = useMemo(
+  const pokemonsWithPower: PokemonWithPower[] = useMemo(
     () =>
       pokemons.map((p: Pokemon) => ({
         ...p,
