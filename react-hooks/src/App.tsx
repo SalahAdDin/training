@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Pokemon, getAll, getByName } from "./API";
-
 import "./styles.css";
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+
+import { getAll, Pokemon } from "./API";
 
 interface PokemonWithPower extends Pokemon {
   power: number;
@@ -18,7 +19,7 @@ const calculatePower = (pokemon: Pokemon) =>
 let tableRender = 0;
 const PokemonTable: React.FunctionComponent<{
   pokemon: PokemonWithPower[];
-}> = ({ pokemon }) => {
+}> = React.memo(({ pokemon }: { pokemon: PokemonWithPower[] }) => {
   console.log(`Table Render = ${tableRender++}`);
 
   return (
@@ -50,7 +51,7 @@ const PokemonTable: React.FunctionComponent<{
       </tbody>
     </table>
   );
-};
+});
 
 let appRender = 0;
 export default function App() {
@@ -63,18 +64,35 @@ export default function App() {
     getAll().then(setPokemons);
   }, []);
 
-  const pokemonsWithPower: Pokemon[] = pokemons.map((p: Pokemon) => ({
-    ...p,
-    power: calculatePower(p),
-  }));
+  const pokemonsWithPower: Pokemon[] = useMemo(
+    () =>
+      pokemons.map((p: Pokemon) => ({
+        ...p,
+        power: calculatePower(p),
+      })),
+    [pokemons]
+  );
 
-  const countOverThreshold = pokemonsWithPower.filter(
-    (p) => p.power > threshold
-  ).length;
+  const countOverThreshold = useMemo(
+    () => pokemonsWithPower.filter((p) => p.power > threshold).length,
+    [pokemonsWithPower, threshold]
+  );
 
-  const onSetThreshold = ({
-    target: { value },
-  }: React.ChangeEvent<HTMLInputElement>) => setThreshold(parseInt(value, 0));
+  const onSetThreshold = useCallback(
+    ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) =>
+      setThreshold(parseInt(value, 0)),
+    []
+  );
+
+  const min = useMemo(
+    () => Math.min(...pokemonsWithPower.map((p) => p.power)),
+    [pokemonsWithPower]
+  );
+
+  const max = useMemo(
+    () => Math.max(...pokemonsWithPower.map((p) => p.power)),
+    [pokemonsWithPower]
+  );
 
   return (
     <div>
@@ -88,8 +106,8 @@ export default function App() {
       <div className="two-column">
         <PokemonTable pokemon={pokemonsWithPower} />
         <div>
-          <div>Min: </div>
-          <div>Max: </div>
+          <div>Min: {min}</div>
+          <div>Max: {max}</div>
         </div>
       </div>
     </div>
