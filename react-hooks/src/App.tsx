@@ -2,7 +2,7 @@ import "./styles.css";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { getAll, Pokemon } from "./API";
+import { getByName, Pokemon } from "./API";
 
 interface PokemonWithPower extends Pokemon {
   power: number;
@@ -59,9 +59,10 @@ export default function App() {
 
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [threshold, setThreshold] = useState(0);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getAll().then(setPokemons);
+    getByName(search).then(setPokemons);
   }, []);
 
   const pokemonsWithPower: Pokemon[] = useMemo(
@@ -84,6 +85,12 @@ export default function App() {
     []
   );
 
+  const onSearch = useCallback(
+    ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) =>
+      setSearch(value),
+    []
+  );
+
   const min = useMemo(
     () => Math.min(...pokemonsWithPower.map((p) => p.power)),
     [pokemonsWithPower]
@@ -98,7 +105,7 @@ export default function App() {
     <div>
       <div className="top-bar">
         <div>Search</div>
-        <input type="text"></input>
+        <input type="text" value={search} onChange={onSearch} />
         <div>Power threshold</div>
         <input type="text" value={threshold} onChange={onSetThreshold} />
         <div>Count over threshold: {countOverThreshold}</div>
